@@ -2,7 +2,9 @@ package tools
 
 import (
 	"fmt"
+	"os"
 	"reflect"
+	"regexp"
 )
 
 
@@ -65,4 +67,33 @@ func takeArg(arg interface{}, kind reflect.Kind) (val reflect.Value, ok bool) {
 		ok = true
 	}
 	return
+}
+
+func ReCompileGroup(rexp *regexp.Regexp,matchStr string) map[string]string {
+	matchs := rexp.FindStringSubmatch(matchStr)
+	if len(matchs) == 0 {
+		return nil
+	}
+
+	groupNames := rexp.SubexpNames()
+	result := make(map[string]string)
+	for i,name := range groupNames {
+		if i != 0 && name != "" {
+			fmt.Println(name)
+			fmt.Println(matchs)
+			result[name] = matchs[i]
+		}
+	}
+	return result
+}
+
+func FileExists(path string) bool {
+	_, err := os.Stat(path)
+
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
 }
