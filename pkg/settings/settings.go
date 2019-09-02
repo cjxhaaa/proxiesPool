@@ -83,26 +83,26 @@ func Init(filename string) *Settings {
 		init_score = 100
 	}
 
-	if settings.HasSection("qingting_proxy") &&  settings.GetOptionBool("qingting_proxy","enable"){
-		orderId := secret.AesDecrypt(settings.GetOptionValue("qingting_proxy","order_id"),"1234567812345678")
+	if settings.HasSection("qingting") &&  settings.GetOptionBool("qingting","enable"){
+		orderId := secret.AesDecrypt(settings.GetOptionValue("qingting","order_id"),"1234567812345678")
 		if orderId == "" {
 			log.Fatal("please check you order")
 		}
 
-		num, err := strconv.Atoi(settings.GetOptionValue("qingting_proxy","num"))
+		num, err := strconv.Atoi(settings.GetOptionValue("qingting","num"))
 		if err != nil {
 			num = 10
 		}
-		pp = append(pp,ProxyParams{"qingting_proxy",orderId,num})
+		pp = append(pp,ProxyParams{"qingting",orderId,num})
 
 	}
 
-	if settings.HasSection("ip3366_proxy") &&  settings.GetOptionBool("ip3366_proxy","enable") {
-		num, err := strconv.Atoi(settings.GetOptionValue("qingting_proxy","num"))
+	if settings.HasSection("ip3366") &&  settings.GetOptionBool("ip3366","enable") {
+		num, err := strconv.Atoi(settings.GetOptionValue("qingting","num"))
 		if err != nil {
 			num = 10
 		}
-		pp = append(pp,ProxyParams{"ip3366_proxy","",num})
+		pp = append(pp,ProxyParams{"ip3366","",num})
 	}
 
 	return &Settings{server,timeout,score_interval,pass_score,init_score,pp}

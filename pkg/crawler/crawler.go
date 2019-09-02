@@ -1,21 +1,54 @@
 package crawler
 
-import "ProxyPool/pkg/settings"
+import (
+	"ProxyPool/pkg/crawler/ip3366"
+	"ProxyPool/pkg/crawler/proxies"
+	"ProxyPool/pkg/crawler/qingting"
+	"ProxyPool/pkg/settings"
+	"time"
+)
 
-type Proxy struct {
-	Ip       string
-	Port     string
-	Address  string
+
+
+type Parser struct {
+	crawlers   []Crawler
+	proxies.Proxies
 }
 
-type Proxies struct {
-	Address  []Proxy
-}
 
-func (proxies *Proxies)GetProxy(st settings.ProxyParams) {
-	if st.ProxyName == "ip3366_proxy" {
-		proxies.GetIp3366Proxy(st)
-	} else if st.ProxyName == "qingting_proxy" {
-		proxies.GetQingTingProxy(st)
+func (p *Parser) Register(st *settings.ProxyParams) {
+	var cr Crawler
+	switch st.ProxyName {
+	case ip3366.Name:
+		cr = ip3366.NewCrawler(st)
+	case qingting.Name:
+		cr = qingting.NewCrawler(st)
+	}
+	if cr != nil {
+		p.crawlers = append(p.crawlers, cr)
 	}
 }
+
+func (p *Parser) Start(ch chan<- interface{}) {
+	for {
+		for _, crawler := range p.crawlers {
+			go func(crawler Crawler) {
+				ps, err := crawler.GetProxy()
+				if err != nil {
+					panic(err)
+				}
+				p.Address = append(p.Address, ps...)
+				for _, p := range ps {
+					ch <- p
+				}
+			}(crawler)
+		}
+		time.Sleep(15*time.Second)
+	}
+
+}
+
+type Crawler interface {
+	GetProxy() ([]*proxies.Proxy, error)
+}
+
