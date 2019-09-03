@@ -5,6 +5,7 @@ import (
 	"ProxyPool/pkg/crawler/proxies"
 	"ProxyPool/pkg/crawler/qingting"
 	"ProxyPool/pkg/settings"
+	"github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -32,7 +33,13 @@ func (p *Parser) Register(st *settings.ProxyParams) {
 func (p *Parser) Start(ch chan<- interface{}) {
 	for {
 		for _, crawler := range p.crawlers {
+
 			go func(crawler Crawler) {
+				defer func() {
+					if r := recover(); r != nil {
+						logrus.Errorf("Recovered a panic %s", r)
+					}
+				}()
 				ps, err := crawler.GetProxy()
 				if err != nil {
 					panic(err)

@@ -13,6 +13,7 @@ import (
 )
 
 const Name = "qingting"
+const tooManyRequest = "请求频率过快"
 
 type Crawler struct {
 	Setting  *settings.ProxyParams
@@ -52,7 +53,7 @@ func (c *Crawler)GetProxy() ([]*proxies.Proxy, error) {
 	}
 	response, err := requests.Request(options)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	var qtJson []qingTingProxyJson
@@ -62,10 +63,10 @@ func (c *Crawler)GetProxy() ([]*proxies.Proxy, error) {
 		var msgJson qingTingMsgJson
 		if err = json.Unmarshal(response.Bytes, &msgJson); err != nil {
 			switch msgJson.Msg {
-			case "请求频率过快":
-				log.Println("请求频率过快")
+			case tooManyRequest:
+				log.Println(tooManyRequest)
 				time.Sleep(5*time.Second)
-				return nil, nil
+				return nil, errors.New(tooManyRequest)
 			}
 			return nil, errors.New(msgJson.Msg)
 		}
