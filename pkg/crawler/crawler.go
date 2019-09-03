@@ -36,13 +36,13 @@ func (p *Parser) Start(ch chan<- interface{}) {
 		cch := make(chan interface{}, 30)
 		stop := make(chan bool)
 		for _, crawler := range p.crawlers {
-
 			go func(crawler Crawler) {
 				defer func() {
+					close(cch)
 					if r := recover(); r != nil {
 						logrus.Errorf("Recovered a panic %s", r)
+						stop<-true
 					}
-					stop <- true
 				}()
 				ps, err := crawler.GetProxy()
 				if err != nil {
@@ -53,20 +53,28 @@ func (p *Parser) Start(ch chan<- interface{}) {
 					cch <- p
 				}
 			}(crawler)
+			go func() {
+				var pp interface{}
+				ok := true
+				for {
+					select {
+					case pp, ok = <-cch:
+						if ok {
+							ch <- pp
+						} else {
+							break
+						}
+					case <- stop:
+						ok = false
+						break
+					}
+					if !ok {
+						break
+					}
+				}
+			}()
 		}
 
-		select {
-		case p, ok := <-cch:
-			if ok {
-				ch <- p
-			} else {
-				close(cch)
-				break
-			}
-		case <- stop:
-			close(cch)
-			break
-		}
 		time.Sleep(15*time.Second)
 	}
 
