@@ -31,7 +31,10 @@ func (p *Parser) Register(st *settings.ProxyParams) {
 }
 
 func (p *Parser) Start(ch chan<- interface{}) {
+
 	for {
+		cch := make(chan interface{}, 30)
+		stop := make(chan bool)
 		for _, crawler := range p.crawlers {
 
 			go func(crawler Crawler) {
@@ -39,6 +42,7 @@ func (p *Parser) Start(ch chan<- interface{}) {
 					if r := recover(); r != nil {
 						logrus.Errorf("Recovered a panic %s", r)
 					}
+					stop <- true
 				}()
 				ps, err := crawler.GetProxy()
 				if err != nil {
@@ -46,9 +50,22 @@ func (p *Parser) Start(ch chan<- interface{}) {
 				}
 				p.Address = append(p.Address, ps...)
 				for _, p := range ps {
-					ch <- p
+					cch <- p
 				}
 			}(crawler)
+		}
+
+		select {
+		case p, ok := <-cch:
+			if ok {
+				ch <- p
+			} else {
+				close(cch)
+				break
+			}
+		case <- stop:
+			close(cch)
+			break
 		}
 		time.Sleep(15*time.Second)
 	}
