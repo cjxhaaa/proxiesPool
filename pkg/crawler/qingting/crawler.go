@@ -44,12 +44,11 @@ type qingTingMsgJson struct {
 func (c *Crawler)GetProxy() ([]*proxies.Proxy, error) {
 	start_url := fmt.Sprintf("https://proxy.horocn.com/api/proxies?order_id=%s&num=%d&format=json&line_separator=unix&can_repeat=no",c.Setting.OrderID,c.Setting.Num)
 
-	client := requests.InitClient()
 	fmt.Printf("GET: %s\n",start_url)
 	options := requests.Options{
-		Client:client,
 		Method:"GET",
 		URL:start_url,
+		Retry: 1,
 	}
 	response, err := requests.Request(options)
 	if err != nil {

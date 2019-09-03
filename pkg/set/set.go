@@ -4,7 +4,7 @@ import (
 	"ProxyPool/pkg/crawler/proxies"
 	"ProxyPool/pkg/settings"
 	"fmt"
-	"github.com/cjxhaaa/skiplist"
+	"github.com/cjxhaaa/myGoTools/skipList"
 	"sync"
 	"time"
 )

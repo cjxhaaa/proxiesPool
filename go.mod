@@ -1,8 +1,7 @@
 module ProxyPool
 
 require (
-	github.com/cjxhaaa/myGoTools v0.0.0-20190815075626-232ed4b2294e
-	github.com/cjxhaaa/skiplist v0.0.0-20190306105421-2eba88ae8d5d
+	github.com/cjxhaaa/myGoTools v0.0.0-20190903035200-ceb044a5b9a7 // indirect
 	github.com/gin-contrib/sse v0.0.0-20190125020943-a7658810eb74 // indirect
 	github.com/gin-gonic/gin v1.3.0
 	github.com/golang/protobuf v1.2.0 // indirect

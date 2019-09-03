@@ -29,14 +29,12 @@ func (c *Crawler)GetProxy() ([]*proxies.Proxy, error)  {
 		urls = append(urls, fmt.Sprintf(start_url,i))
 	}
 
-	client := requests.InitClient()
 
 	var p = []*proxies.Proxy{}
 
 	for _, _url := range urls {
 		fmt.Printf("GET: %s\n",_url)
 		options := requests.Options{
-			Client:client,
 			Method:"GET",
 			URL:_url,
 		}
