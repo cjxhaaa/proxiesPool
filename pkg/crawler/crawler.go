@@ -13,12 +13,21 @@ import (
 
 type Pool struct {
 	crawlers   []Crawler
-	Address    []*proxies.Proxy
+	address    []*proxies.Proxy
 	set        *Seter
 }
 
+func NewPool(ss *settings.Settings) *Pool {
+	pool := &Pool{}
+	for _, st := range ss.ProxySetting {
+		pool.register(&st)
+	}
+	pool.initSet(ss)
+	return pool
+}
 
-func (p *Pool) Register(st *settings.ProxyParams) {
+
+func (p *Pool) register(st *settings.ProxyParams) {
 	var cr Crawler
 	switch st.ProxyName {
 	case ip3366.Name:
@@ -31,7 +40,7 @@ func (p *Pool) Register(st *settings.ProxyParams) {
 	}
 }
 
-func (p *Pool) InitSet(ss *settings.Settings) {
+func (p *Pool) initSet(ss *settings.Settings) {
 	p.set = NewSet(ss)
 	go p.set.Run()
 }
@@ -50,7 +59,7 @@ func (p *Pool) Start() {
 				if err != nil {
 					panic(err)
 				}
-				p.Address = append(p.Address, ps...)
+				p.address = append(p.address, ps...)
 				for _, proxy := range ps {
 					 p.set.add <- proxy.Address
 				}

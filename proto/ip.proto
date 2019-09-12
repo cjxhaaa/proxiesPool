@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+
+package proto;
+
+service ProxyPool {
+	rpc CallProxy(Req) returns (Resp) {};
+}
+
+message Req {
+}
+
+message Resp {
+	string proxy = 1;
+	MessageType message = 2;
+	enum MessageType {
+		SUCCESS = 0;
+		FAILED = 1;
+		NOT_ENOUGH = 2;
+	}
+
+}

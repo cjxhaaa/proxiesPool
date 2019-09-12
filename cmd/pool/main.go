@@ -3,6 +3,7 @@ package main
 import (
 	"ProxyPool/pkg/crawler"
 	"ProxyPool/pkg/settings"
+	"ProxyPool/rpcserve"
 	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -11,22 +12,11 @@ import (
 	"time"
 )
 
-var (
-	pool crawler.Pool
-	ss *settings.Settings
-)
-
 func init() {
 	logrus.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp: true,
 		TimestampFormat: time.RFC3339,
 	})
-	ss = settings.Init("config.ini")
-	for _, st := range ss.ProxySetting {
-		fmt.Println(st)
-		pool.Register(&st)
-	}
-	pool.InitSet(ss)
 }
 
 
@@ -35,6 +25,8 @@ func main() {
 		port string
 		username string
 		password string
+		ss = settings.Init("config.ini")
+		pool = crawler.NewPool(ss)
 	)
 
 	flag.StringVar(&port, "port", "8081", "listen port")
@@ -43,10 +35,13 @@ func main() {
 	flag.Parse()
 
 	fmt.Println("Listen on", port)
-	fmt.Println(pool)
 	//启动爬虫
 	go pool.Start()
 
+	grpcServer := &rpcserve.Service{Port:"8082", Pool:pool}
+	go grpcServer.RunGrpcServer()
+
+	// http api
 	engine := gin.New()
 	engine.Use(gin.Logger(),gin.Recovery())
 	engine.Use(AuthMiddle)
