@@ -14,7 +14,6 @@ const Name = "ip3366"
 type Crawler struct {
 	Setting  *settings.ProxyParams
 	cli      *http.Client
-	proxies.Proxies
 }
 
 func NewCrawler(st *settings.ProxyParams) *Crawler {
