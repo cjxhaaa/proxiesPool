@@ -36,6 +36,8 @@
     │   └── config.go                 // 解析config.ini模块
     ├── crawler
     │   ├── crawler.go                // Crawler接口和parser解析器注册方法
+    │   ├── set.go                    // 有序集合的一些方法实现，基于自己实现的skiplist
+    │   ├── set_test.go
     │   ├── ip3366                     
     │   │   └── crawler.go            // ip3366代理Crawler接口实现
     │   ├── proxies
@@ -45,9 +47,6 @@
     │       └── crawler_test.go 
     ├── secret
     │   └── secret.go
-    ├── set
-    │   ├── set.go                    // 有序集合的一些方法实现，基于自己实现的skiplist
-    │   └── set_test.go
     ├── settings
     │   └── settings.go             
     └── tools
