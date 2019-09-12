@@ -11,13 +11,14 @@ import (
 
 
 
-type Parser struct {
+type Pool struct {
 	crawlers   []Crawler
-	proxies.Proxies
+	Address    []*proxies.Proxy
+	set        *Seter
 }
 
 
-func (p *Parser) Register(st *settings.ProxyParams) {
+func (p *Pool) Register(st *settings.ProxyParams) {
 	var cr Crawler
 	switch st.ProxyName {
 	case ip3366.Name:
@@ -30,7 +31,12 @@ func (p *Parser) Register(st *settings.ProxyParams) {
 	}
 }
 
-func (p *Parser) Start(ch chan<- interface{}) {
+func (p *Pool) InitSet(ss *settings.Settings) {
+	p.set = NewSet(ss)
+	go p.set.Run()
+}
+
+func (p *Pool) Start() {
 
 	for {
 		for _, crawler := range p.crawlers {
@@ -45,8 +51,8 @@ func (p *Parser) Start(ch chan<- interface{}) {
 					panic(err)
 				}
 				p.Address = append(p.Address, ps...)
-				for _, p := range ps {
-					ch <- p
+				for _, proxy := range ps {
+					 p.set.add <- proxy.Address
 				}
 			}(crawler)
 		}
@@ -54,6 +60,20 @@ func (p *Parser) Start(ch chan<- interface{}) {
 		time.Sleep(15*time.Second)
 	}
 
+}
+
+func (p *Pool) GetOneProxy() string {
+	for i := 0 ; i < int(p.set.SortSet.Length()); i++ {
+		key,score := p.set.SortSet.GetDataByRank(0,true)
+
+		if score < p.set.PassScore {
+			p.set.pop <- key
+			continue
+		}
+		p.set.decline <- key
+		return key
+	}
+	return ""
 }
 
 type Crawler interface {

@@ -1,4 +1,4 @@
-package set
+package crawler
 
 import (
 	"ProxyPool/pkg/settings"
@@ -16,11 +16,13 @@ func TestSeter_GetOneProxy(t *testing.T) {
 		InitScore: 100,
 	}
 	set := NewSet(st)
-	set.AddProxy("1.1.1.1")
-	set.AddProxy("2.2.2.2")
-	set.AddProxy("3.3.3.3")
-	set.AddProxy("4.4.4.4")
-	set.AddProxy("5.5.5.5")
+	set.Run()
+
+	set.add <- "1.1.1.1"
+	set.add <- "2.2.2.2"
+	set.add <- "3.3.3.3"
+	set.add <- "4.4.4.4"
+	set.add <- "5.5.5.5"
 
 	fmt.Println(set.SortSet.Length())
 
@@ -56,16 +58,16 @@ func TestSeter_CheckIpsValid(t *testing.T) {
 		}
 
 	}()
-	set.AddProxy("1.1.1.1")
+	set.add <- "1.1.1.1"
 	fmt.Println()
 	time.Sleep(2*time.Second)
-	set.AddProxy("2.2.2.2")
+	set.add <- "2.2.2.2"
 	time.Sleep(2*time.Second)
-	set.AddProxy("3.3.3.3")
+	set.add <- "3.3.3.3"
 	time.Sleep(2*time.Second)
-	set.AddProxy("4.4.4.4")
+	set.add <- "4.4.4.4"
 	time.Sleep(2*time.Second)
-	set.AddProxy("5.5.5.5")
+	set.add <- "5.5.5.5"
 	fmt.Println(set.SortSet.Length())
 	time.Sleep(3*time.Second)
 	fmt.Println(set.SortSet.Length())

@@ -1,10 +1,9 @@
-package set
+package crawler
 
 import (
-	"ProxyPool/pkg/crawler/proxies"
 	"ProxyPool/pkg/settings"
-	"fmt"
 	"github.com/cjxhaaa/myGoTools/skipList"
+	"github.com/sirupsen/logrus"
 	"sync"
 	"time"
 )
@@ -15,7 +14,10 @@ type Seter struct {
 	ScoreInterval  float64
 	Timeout        int
 	SortSet        *skipList.SortedSet
-	sync.RWMutex
+	sync.Mutex
+	add            chan string
+	pop            chan string
+	decline        chan string
 }
 
 func NewSet(st *settings.Settings) *Seter {
@@ -25,45 +27,37 @@ func NewSet(st *settings.Settings) *Seter {
 		ScoreInterval: st.ScoreInterval,
 		Timeout: st.Timeout,
 		SortSet: skipList.New(),
+		add:      make(chan string),   // 这里使用无缓冲保证操作的原子性
+		pop:      make(chan string),
+		decline : make(chan string),
 	}
 }
 
-func (s *Seter) AddProxy(key string) {
-	s.Lock()
-	defer s.Unlock()
-	s.SortSet.Set(key, s.InitScore)
-}
+func (s *Seter) Run() {
+	// 增删操作
+	go func() {
+		for {
+			select {
+			case key := <- s.add:
+				s.SortSet.Set(key, s.InitScore)
 
-func (s *Seter) AddProxies(ch <-chan interface{}) {
-	qqq := <- ch
-	if f, ok := qqq.(*proxies.Proxy);ok {
-		fmt.Println(f.Address)
-		s.AddProxy(f.Address) // 存入有序set中
-	}
-}
+			case key := <- s.pop:
+				s.SortSet.Delete(key)
 
-func (s *Seter) GetOneProxy() string {
-
-
-	for i := 0 ; i < int(s.SortSet.Length()); i++ {
-		s.RLock()
-		key,score := s.SortSet.GetDataByRank(0,true)
-		s.RUnlock()
-
-		if score < s.PassScore {
-			s.Lock()
-			s.SortSet.Delete(key)
-			s.Unlock()
-			continue
+			case key := <- s.decline:
+				s.SortSet.Increase(key, s.ScoreInterval)
+			}
 		}
+	}()
 
-		s.Lock()
-		s.SortSet.Increase(key, s.ScoreInterval)
-		s.Unlock()
-
-		return key
-	}
-	return ""
+	// 检查过期
+	go func() {
+		for {
+			s.CheckIpsValid()
+			logrus.Infof("pool剩余代理数%d", s.SortSet.Length())
+			time.Sleep(2 * time.Second)
+		}
+	}()
 }
 
 func (s *Seter) CheckIpsValid() {
@@ -75,7 +69,7 @@ func (s *Seter) CheckIpsValid() {
 		time_stamp := s.SortSet.GetTimeStamp(key)
 
 		if !check_time(time_stamp,s.Timeout) || score < s.PassScore {
-			s.SortSet.Delete(key)
+			s.pop <- key
 			continue
 		}
 	}

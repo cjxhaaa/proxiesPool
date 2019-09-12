@@ -6,7 +6,3 @@ type Proxy struct {
 	Port     string
 	Address  string
 }
-
-type Proxies struct {
-	Address  []*Proxy
-}

@@ -2,7 +2,6 @@ package main
 
 import (
 	"ProxyPool/pkg/crawler"
-	"ProxyPool/pkg/set"
 	"ProxyPool/pkg/settings"
 	"flag"
 	"fmt"
@@ -13,7 +12,7 @@ import (
 )
 
 var (
-	parser crawler.Parser
+	pool crawler.Pool
 	ss *settings.Settings
 )
 
@@ -25,8 +24,9 @@ func init() {
 	ss = settings.Init("config.ini")
 	for _, st := range ss.ProxySetting {
 		fmt.Println(st)
-		parser.Register(&st)
+		pool.Register(&st)
 	}
+	pool.InitSet(ss)
 }
 
 
@@ -43,33 +43,9 @@ func main() {
 	flag.Parse()
 
 	fmt.Println("Listen on", port)
-
-
-
-	//代理排名
-	proxiesRank := set.NewSet(ss)
-
-	q_queue := make(chan interface{},300)
-	fmt.Println(parser)
-	//代理获取
-	go parser.Start(q_queue)
-
-	//代理提取
-	go func() {
-		for {
-			proxiesRank.AddProxies(q_queue)
-		}
-	}()
-
-	//检测代理时效性
-	go func() {
-		for {
-			proxiesRank.CheckIpsValid()
-			logrus.Infof("pool剩余代理数%d", proxiesRank.SortSet.Length())
-			time.Sleep(2 * time.Second)
-		}
-	}()
-
+	fmt.Println(pool)
+	//启动爬虫
+	go pool.Start()
 
 	engine := gin.New()
 	engine.Use(gin.Logger(),gin.Recovery())
@@ -86,7 +62,7 @@ func main() {
 				panic(err)
 			}
 			for i:=0 ; i < num; i++ {
-				key := proxiesRank.GetOneProxy()
+				key := pool.GetOneProxy()
 				if key == "" || checkExist(ps,key) {
 					continue
 				}
@@ -113,7 +89,7 @@ func main() {
 			}
 
 		} else {
-			key := proxiesRank.GetOneProxy()
+			key := pool.GetOneProxy()
 
 			if key == "" {  //没取到合适的删除
 
