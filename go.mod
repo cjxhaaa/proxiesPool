@@ -18,3 +18,5 @@ require (
 	gopkg.in/xmlpath.v2 v2.0.0-20150820204837-860cbeca3ebc
 	gopkg.in/yaml.v2 v2.2.2 // indirect
 )
+
+go 1.13

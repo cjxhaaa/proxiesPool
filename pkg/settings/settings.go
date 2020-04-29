@@ -22,6 +22,7 @@ type ProxyParams struct {
 	ProxyName  string
 	OrderID    string
 	Num        int
+	UserToken  string
 }
 
 type serverInfo struct {
@@ -93,7 +94,9 @@ func Init(filename string) *Settings {
 		if err != nil {
 			num = 10
 		}
-		pp = append(pp,ProxyParams{"qingting",orderId,num})
+
+		token := settings.GetOptionValue("qingting","token")
+		pp = append(pp,ProxyParams{"qingting",orderId,num, token})
 
 	}
 
@@ -102,7 +105,7 @@ func Init(filename string) *Settings {
 		if err != nil {
 			num = 10
 		}
-		pp = append(pp,ProxyParams{"ip3366","",num})
+		pp = append(pp,ProxyParams{ProxyName:"ip3366",Num:num})
 	}
 
 	return &Settings{server,timeout,score_interval,pass_score,init_score,pp}

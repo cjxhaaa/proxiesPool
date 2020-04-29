@@ -41,7 +41,7 @@ type qingTingMsgJson struct {
 
 
 func (c *Crawler)GetProxy() ([]*proxies.Proxy, error) {
-	start_url := fmt.Sprintf("https://proxy.horocn.com/api/proxies?order_id=%s&num=%d&format=json&line_separator=unix&can_repeat=no",c.Setting.OrderID,c.Setting.Num)
+	start_url := fmt.Sprintf("https://proxy.horocn.com/api/proxies?order_id=%s&num=%d&format=json&line_separator=unix&can_repeat=no&user_token=%s",c.Setting.OrderID,c.Setting.Num,c.Setting.UserToken)
 
 	fmt.Printf("GET: %s\n",start_url)
 	options := requests.Options{
